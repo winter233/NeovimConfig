@@ -11,6 +11,12 @@ require("lazy").setup({
     -- add LazyVim and import its plugins
     { "LazyVim/LazyVim", import = "lazyvim.plugins" },
     -- import any extras modules here
+    { import = "lazyvim.plugins.extras.coding.yanky" },
+    { import = "lazyvim.plugins.extras.dap.core" },
+    -- TODO: bug in clangd
+    -- { import = "lazyvim.plugins.extras.lang.clangd" },
+    { import = "lazyvim.plugins.extras.util.project" },
+    -- { import = "lazyvim.plugins.extras.ui.edgy" },
     -- { import = "lazyvim.plugins.extras.lang.typescript" },
     -- { import = "lazyvim.plugins.extras.lang.json" },
     -- { import = "lazyvim.plugins.extras.ui.mini-animate" },
@@ -26,7 +32,7 @@ require("lazy").setup({
     version = false, -- always use the latest git commit
     -- version = "*", -- try installing the latest stable version for plugins that support semver
   },
-  install = { colorscheme = { "tokyonight", "habamax" } },
+  install = { colorscheme = { "gruvbox-baby", "tokyonight", "habamax" } },
   checker = { enabled = true }, -- automatically check for plugin updates
   performance = {
     rtp = {
@@ -44,3 +50,18 @@ require("lazy").setup({
     },
   },
 })
+
+local get_root = function ()
+  local root_patterns = { ".git", "lua" }
+  ---@type string?
+  local path = vim.api.nvim_buf_get_name(0)
+  path = path ~= "" and vim.loop.fs_realpath(path) or nil
+  path = path and vim.fs.dirname(path) or vim.loop.cwd()
+  ---@type string?
+  local root = vim.fs.find(root_patterns, { path = path, upward = true })[1]
+  root = root and vim.fs.dirname(root) or vim.loop.cwd()
+  ---@cast root string
+  return root
+end
+-- local Util = require("lazyvim.util")
+-- Util.get_root = get_root
