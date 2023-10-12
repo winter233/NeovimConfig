@@ -71,7 +71,7 @@ return {
       window = {
         mappings = {
           ["<space>"] = "none",
-          ["v"] = "vsplit_and_quit_tree",
+          ["ov"] = "vsplit_and_quit_tree",
           ["O"] = "system_open",
           ["oo"] = "open_and_quit_tree",
         },
@@ -107,24 +107,12 @@ return {
       defaults = {
         mappings = {
           i = {
-            ["<C-N>"] = function(...)
-              return require("telescope.actions").cycle_history_next(...)
-            end,
-            ["<C-P>"] = function(...)
-              return require("telescope.actions").cycle_history_prev(...)
-            end,
-            ["<C-J>"] = function(...)
-              return require("telescope.actions").move_selection_next(...)
-            end,
-            ["<C-K>"] = function(...)
-              return require("telescope.actions").move_selection_previous(...)
-            end,
-            ["`"] = function(...)
-              return require("telescope.actions").select_tab(...)
-            end,
-            ["<A-s>"] = function(...)
-              return require("telescope.actions").delete_buffer(...)
-            end,
+            ["<C-N>"] = require("telescope.actions").cycle_history_next,
+            ["<C-P>"] = require("telescope.actions").cycle_history_prev,
+            ["<C-J>"] = require("telescope.actions").move_selection_next,
+            ["<C-K>"] = require("telescope.actions").move_selection_previous,
+            ["<A-s>"] = require("telescope.actions").delete_buffer,
+            ["`"] = require("telescope.actions").select_tab,
           },
         },
       },
