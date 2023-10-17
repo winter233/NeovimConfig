@@ -18,6 +18,7 @@ local function map(mode, lhs, rhs, opts)
 end
 
 map("n", "<C-D>", "<cmd>q<cr>", { desc = "Quit" })
+map("n", "<leader>qt", "<cmd>tabclose<cr>", { desc = "Quit current tab" })
 
 -- TODO: A-j
 -- map("n", "<A-j>", "<cmd>m .+1<cr>==", { desc = "Move down" })
@@ -36,13 +37,13 @@ map("n", "<leader>z", "$")
 -- map("n", "<leader>p", '"+p', { desc = "paste to system clipboard" })
 
 map("n", "<leader>dA", function()
-  require("lazyvim.util").create_or_open_launch_json(require("lazyvim.util").get_root())
+  require("config.util").create_or_open_launch_json(Util.get_root())
 end, { desc = "Create/open launch.json(root dir)" })
 map("n", "<leader>da", function()
-  require("lazyvim.util").create_or_open_launch_json(vim.loop.cwd())
+  require("config.util").create_or_open_launch_json(vim.loop.cwd())
 end, { desc = "Create/open launch.json(cwd)" })
 
-local lazyterm = function() Util.float_term(nil, { border = "single", cwd = Util.get_root() }) end
+local lazyterm = function() Util.float_term(nil, { border = "single", cwd = require("config.util").get_root() }) end
 map("n", "<leader>ft", lazyterm, { desc = "Terminal (root dir)" })
 map("n", "<leader>fT", function() Util.float_term(nil, { border = "single" }) end, { desc = "Terminal (cwd)" })
 -- map("n", "<C-/>", lazyterm, { desc = "Terminal (root dir)" })
