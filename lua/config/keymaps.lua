@@ -2,6 +2,7 @@
 -- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
 -- Add any additional keymaps here
 local Util = require("lazyvim.util")
+local Util2 = require("config.util")
 
 local function map(mode, lhs, rhs, opts)
   local keys = require("lazy.core.handler").handlers.keys
@@ -36,26 +37,33 @@ map("n", "<leader>z", "$")
 -- map({"n", "v"}, "<leader>y", '"+y', { desc = "copy to system clipboard" })
 -- map("n", "<leader>p", '"+p', { desc = "paste to system clipboard" })
 
-map("n", "<leader>dA", function()
-  require("config.util").create_or_open_launch_json(Util.get_root())
-end, { desc = "Create/open launch.json(root dir)" })
-map("n", "<leader>da", function()
-  require("config.util").create_or_open_launch_json(vim.loop.cwd())
-end, { desc = "Create/open launch.json(cwd)" })
+map("n", "<leader>dA", function() Util2.create_or_open_launch_json(Util2.root()) end, { desc = "Create/open launch.json(root dir)" })
+map("n", "<leader>da", function() Util2.create_or_open_launch_json(vim.loop.cwd()) end, { desc = "Create/open launch.json(cwd)" })
+---
+---@type integer
+local last_term = 1
+local function lazyterm(index, close)
+  index = index or 1
+  close = close or false
+  if close then
+    vim.cmd("close")
+  end
+  last_term = index
+  Util.terminal(nil, { border = "single", cwd = Util2.root(), env = {NVIM_TERM_INDEX = index} })
+end
 
-local lazyterm = function() Util.float_term(nil, { border = "single", cwd = require("config.util").get_root() }) end
-map("n", "<leader>ft", lazyterm, { desc = "Terminal (root dir)" })
-map("n", "<leader>fT", function() Util.float_term(nil, { border = "single" }) end, { desc = "Terminal (cwd)" })
--- map("n", "<C-/>", lazyterm, { desc = "Terminal (root dir)" })
--- map("n", "<C-_>", lazyterm, { desc = "which_key_ignore" })
--- map("t", "<C-/>", "<cmd>close<cr>", { desc = "Hide Terminal" })
--- map("t", "<C-_>", "<cmd>close<cr>", { desc = "which_key_ignore" })
-map("n", "<C-Space>", lazyterm, { desc = "Terminal (root dir)" })
+map({"n", "i"}, "<A-1>", function() lazyterm(1) end, { desc = "Terminal (root)" })
+map({"n", "i"}, "<A-2>", function() lazyterm(2) end, { desc = "Terminal (root)" })
+map({"n", "i"}, "<A-3>", function() lazyterm(3) end, { desc = "Terminal (root)" })
+map("t", "<A-1>", function() lazyterm(1, true) end, { desc = "switch to term 1" })
+map("t", "<A-2>", function() lazyterm(2, true) end, { desc = "switch to term 2" })
+map("t", "<A-3>", function() lazyterm(3, true) end, { desc = "switch to term 3" })
+map("n", "<C-Space>", function() lazyterm(last_term) end, { desc = "Terminal last" })
 map("t", "<C-Space>", "<cmd>close<cr>", { desc = "Hide Terminal" })
 map("t", "<ESC>", "<C-\\><C-n>")
 map("t", "<C-B>", "<C-\\><C-n><C-B>")
-map("t", "<C-v>", '<C-\\><C-N>:lua require("lazyvim.util").paste_multi_lines()<cr>"+pa<cr>', { desc = "paste as commands" })
-map("i", "<C-v>", '<C-C>:lua require("lazyvim.util").split_to_args()<cr>"+pa<cr>', { desc = "Paste as args" })
+map("t", "<C-v>", '<C-\\><C-N>:lua require("config.util").paste_multi_lines()<cr>"+pa<cr>', { desc = "paste as commands" })
+map("i", "<C-v>", '<C-C>:lua require("config.util").split_to_args()<cr>"+pa<cr>', { desc = "Paste as args" })
 
 
 -- diff
@@ -65,7 +73,3 @@ map("n", "<leader>dq", "<cmd>windo diffoff<cr>", { desc = "diffoff"})
 map("n", "<A-`>", "<cmd>tablast<cr>", { desc = "switch to lasttab"})
 map("n", "<A-l>", "<cmd>tabnext<cr>", { desc = "switch to next tab"})
 map("n", "<A-h>", "<cmd>tabprevious<cr>", { desc = "switch to prev tab"})
-map("n", "<A-1>", "<cmd>1gt<cr>", { desc = "switch to tab 1"})
-map("n", "<A-2>", "<cmd>2gt<cr>", { desc = "switch to tab 2"})
-map("n", "<A-3>", "<cmd>3gt<cr>", { desc = "switch to tab 3"})
-map("n", "<A-4>", "<cmd>4gt<cr>", { desc = "switch to tab 4"})

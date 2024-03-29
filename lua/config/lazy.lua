@@ -13,6 +13,7 @@ require("lazy").setup({
     -- import any extras modules here
     { import = "lazyvim.plugins.extras.coding.yanky" },
     { import = "lazyvim.plugins.extras.dap.core" },
+    { import = "lazyvim.plugins.extras.editor.aerial" },
     -- TODO: bug in clangd
     -- { import = "lazyvim.plugins.extras.lang.clangd" },
     { import = "lazyvim.plugins.extras.util.project" },
@@ -51,11 +52,13 @@ require("lazy").setup({
   },
 })
 
+---@return string
 local get_root = function ()
   local root_patterns = { ".git", "lua" }
   ---@type string?
   local path = vim.api.nvim_buf_get_name(0)
   path = path ~= "" and vim.loop.fs_realpath(path) or nil
+  ---@type string?
   path = path and vim.fs.dirname(path) or vim.loop.cwd()
   ---@type string?
   local root = vim.fs.find(root_patterns, { path = path, upward = true })[1]
@@ -64,4 +67,5 @@ local get_root = function ()
   return root
 end
 -- local Util = require("lazyvim.util")
--- Util.get_root = get_root
+-- local Util2 = require("lazyvim.util")
+-- Util.root.get = Util2.root

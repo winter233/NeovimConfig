@@ -108,14 +108,15 @@ M.root_patterns = { ".git", "lua" }
 -- * root pattern of filename of the current buffer
 -- * root pattern of cwd
 ---@return string
-function M.get_root()
+function M.root()
+  local root_patterns = { ".git", "lua" }
   ---@type string?
   local path = vim.api.nvim_buf_get_name(0)
   path = path ~= "" and vim.loop.fs_realpath(path) or nil
   ---@type string?
   path = path and vim.fs.dirname(path) or vim.loop.cwd()
   ---@type string?
-  local root = vim.fs.find(M.root_patterns, { path = path, upward = true })[1]
+  local root = vim.fs.find(root_patterns, { path = path, upward = true })[1]
   root = root and vim.fs.dirname(root) or vim.loop.cwd()
   ---@cast root string
   return root
