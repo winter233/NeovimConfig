@@ -1,4 +1,5 @@
 local Util = require("lazyvim.util")
+local Util2 = require("config.util")
 
 return {
 
@@ -52,6 +53,8 @@ return {
       ensure_installed = {
         "cpp",
         "tablegen",
+        "llvm",
+        "bash",
       },
       incremental_selection = {
         enable = true,
@@ -71,9 +74,9 @@ return {
       window = {
         mappings = {
           ["<space>"] = "none",
-          ["ov"] = "vsplit_and_quit_tree",
+          ["<C-v>"] = "vsplit_and_quit_tree",
           ["O"] = "system_open",
-          ["oo"] = "open_and_quit_tree",
+          ["<C-o>"] = "open_and_quit_tree",
         },
       },
       commands = {
@@ -98,9 +101,8 @@ return {
   {
     "nvim-telescope/telescope.nvim",
     keys = {
-      { "<C-P>", Util.telescope("find_files", { find_command = { "fd", "-E", "*test*" } }), desc = "Find Files no tests" },
+      { "<C-P>", Util.telescope("find_files", { find_command = { "fd", "-E", "*test*" }, cwd = Util2.root() }), desc = "Find Files no tests" },
       { "<C-N>", Util.telescope("live_grep"), desc = "Find in Files (Grep)" },
-      { "<C-G>", Util.telescope("grep_string", { word_match = "-w" }), desc = "Find word under cursor (root dir)" },
       { "<A-o>", "<cmd>Telescope resume<cr>", desc = "Resume" },
     },
     opts = {
@@ -115,6 +117,21 @@ return {
             ["`"] = require("telescope.actions").select_tab,
           },
         },
+      },
+    },
+  },
+
+  {
+    "nvim-telescope/telescope-live-grep-args.nvim",
+    config = function()
+      require("telescope").load_extension("live_grep_args")
+    end,
+    keys = {
+      { "<C-G>",
+        function()
+          require("telescope-live-grep-args.shortcuts").grep_word_under_cursor({ postfix = " -F -g !{**test**}" })
+        end,
+        desc = "Find word under cusor no tests"
       },
     },
   },
@@ -328,40 +345,15 @@ return {
   },
 
   {
-    "stevearc/aerial.nvim",
-    lazy = true,
-    keys = {
-      {
-        "<leader>ct",
-        function()
-          require("telescope").extensions.aerial.aerial()
-        end,
-        desc = "aerial symbol telescope",
-      },
-      {
-        "<leader>cT",
-        function()
-          require("aerial").toggle()
-        end,
-        desc = "aerial symbol",
-      },
-    },
-    config = function()
-      require("aerial").setup()
-      require("telescope").load_extension("aerial")
-    end,
-  },
-
-  {
     "ray-x/lsp_signature.nvim",
-    config = true,
-    lazy = true,
+    opts = {},
+    event = "VeryLazy",
+    config = function(_, opts) require'lsp_signature'.setup(opts) end,
   },
 
   {
     "neovim/nvim-lspconfig",
     opts = {
-      autoformat = false,
       -- Enable this to show formatters used in a notification
       -- Useful for debugging formatter issues
       format_notify = true,
@@ -481,6 +473,11 @@ return {
   },
 
   {
+    "t-troebst/perfanno.nvim",
+    config = true,
+  },
+
+  {
     "JoosepAlviste/nvim-ts-context-commentstring",
     enabled = false,
   },
@@ -507,4 +504,11 @@ return {
     end,
   },
 
+  {
+    "folke/todo-comments.nvim",
+    -- stylua: ignore
+    keys = {
+      { "<leader>xf", "<cmd>execute 'TodoTrouble cwd='.expand('%:p')<cr>", desc = "Todo in current file" },
+    },
+  },
 }
