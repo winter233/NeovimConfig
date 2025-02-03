@@ -1,8 +1,7 @@
 -- Keymaps are automatically loaded on the VeryLazy event
 -- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
 -- Add any additional keymaps here
-local Util = require("lazyvim.util")
-local Util2 = require("config.util")
+local Util = require("config.util")
 
 local function map(mode, lhs, rhs, opts)
   local keys = require("lazy.core.handler").handlers.keys
@@ -37,8 +36,8 @@ map("n", "<leader>z", "$")
 -- map({"n", "v"}, "<leader>y", '"+y', { desc = "copy to system clipboard" })
 -- map("n", "<leader>p", '"+p', { desc = "paste to system clipboard" })
 
-map("n", "<leader>dA", function() Util2.create_or_open_launch_json(Util2.root()) end, { desc = "Create/open launch.json(root dir)" })
-map("n", "<leader>da", function() Util2.create_or_open_launch_json(vim.loop.cwd()) end, { desc = "Create/open launch.json(cwd)" })
+map("n", "<leader>dA", function() Util.create_or_open_launch_json(Util.root()) end, { desc = "Create/open launch.json(root dir)" })
+map("n", "<leader>da", function() Util.create_or_open_launch_json(vim.loop.cwd()) end, { desc = "Create/open launch.json(cwd)" })
 ---
 ---@type integer
 local last_term = 1
@@ -49,7 +48,7 @@ local function lazyterm(index, close)
     vim.cmd("close")
   end
   last_term = index
-  Util.terminal(nil, { border = "single", cwd = Util2.root(), env = {NVIM_TERM_INDEX = index} })
+  Snacks.terminal(nil, { win = { position = "float", border = "single"} , cwd = Util.root(), env = {NVIM_TERM_INDEX = index} })
 end
 
 map({"n", "i"}, "<A-1>", function() lazyterm(1) end, { desc = "Terminal (root)" })

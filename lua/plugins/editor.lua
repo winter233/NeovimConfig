@@ -1,8 +1,10 @@
-local Util = require("lazyvim.util")
-local Util2 = require("config.util")
+local Util = require("config.util")
 
 return {
-
+  {
+    "kkharji/sqlite.lua",
+    lazy = true,
+  },
   -- colorscheme: gruvbox
   {
     "luisiacc/gruvbox-baby",
@@ -12,6 +14,7 @@ return {
   -- Configure LazyVim to load gruvbox
   {
     "LazyVim/LazyVim",
+    version = "13.6.x",
     opts = {
       colorscheme = "gruvbox-baby",
     },
@@ -101,8 +104,8 @@ return {
   {
     "nvim-telescope/telescope.nvim",
     keys = {
-      { "<C-P>", Util.telescope("find_files", { find_command = { "fd", "-E", "*test*" }, cwd = Util2.root() }), desc = "Find Files no tests" },
-      { "<C-N>", Util.telescope("live_grep"), desc = "Find in Files (Grep)" },
+      { "<C-P>", LazyVim.pick("find_files", { find_command = { "fd", "-E", "*test*" }, cwd = Util.root() }), desc = "Find Files no tests" },
+      { "<C-N>", LazyVim.pick("live_grep"), desc = "Find in Files (Grep)" },
       { "<A-o>", "<cmd>Telescope resume<cr>", desc = "Resume" },
     },
     opts = {
@@ -129,7 +132,7 @@ return {
     keys = {
       { "<C-G>",
         function()
-          require("telescope-live-grep-args.shortcuts").grep_word_under_cursor({ postfix = " -F -g !{**test**}" })
+          require("telescope-live-grep-args.shortcuts").grep_word_under_cursor({ postfix = " -w -F -g !{**test**}" })
         end,
         desc = "Find word under cusor no tests"
       },
@@ -140,9 +143,10 @@ return {
     "folke/which-key.nvim",
     event = "VeryLazy",
     opts = {
-      defaults = {
-        mode = { "n", "v" },
-        ["<leader>h"] = { name = "+hunks" },
+      spec = {
+        {
+          {"<leader>h", group = "hunk", icon = { cat = "filetype", name = "diff"}, },
+        },
       },
     },
   },
@@ -161,15 +165,28 @@ return {
         end
 
         -- stylua: ignore start
-        map("n", "]h", gs.next_hunk, "Next Hunk")
-        map("n", "[h", gs.prev_hunk, "Prev Hunk")
+        map("n", "]h", function()
+          if vim.wo.diff then
+            vim.cmd.normal({ "]c", bang = true })
+          else
+            gs.nav_hunk("next")
+          end
+        end, "Next Hunk")
+        map("n", "[h", function()
+          if vim.wo.diff then
+            vim.cmd.normal({ "[c", bang = true })
+          else
+            gs.nav_hunk("prev")
+          end
+        end, "Prev Hunk")
         map({ "n", "v" }, "<leader>hs", ":Gitsigns stage_hunk<CR>", "Stage Hunk")
         map({ "n", "v" }, "<leader>hr", ":Gitsigns reset_hunk<CR>", "Reset Hunk")
         map("n", "<leader>hS", gs.stage_buffer, "Stage Buffer")
         map("n", "<leader>hu", gs.undo_stage_hunk, "Undo Stage Hunk")
         map("n", "<leader>hR", gs.reset_buffer, "Reset Buffer")
-        map("n", "<leader>hp", gs.preview_hunk, "Preview Hunk")
+        map("n", "<leader>hp", gs.preview_hunk_inline, "Preview Hunk Inline")
         map("n", "<leader>hb", function() gs.blame_line({ full = true }) end, "Blame Line")
+        map("n", "<leader>hB", function() gs.blame() end, "Blame Buffer")
         map("n", "<leader>hd", gs.diffthis, "Diff This")
         map("n", "<leader>hD", function() gs.diffthis("~") end, "Diff This ~")
         map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", "GitSigns Select Hunk")
@@ -195,23 +212,6 @@ return {
     config = function()
       require("telescope").load_extension("env")
     end,
-  },
-
-  {
-    "inkarkat/vim-mark",
-    event = "VeryLazy",
-    keys = {
-      { "<F7>", "<Plug>MarkSearchCurrentNext" },
-      { "<F19>", "<Plug>MarkSearchCurrentPrev" },
-      { "<F8>", "<Plug>MarkSearchAnyNext" },
-      { "<F20>", "<Plug>MarkSearchAnyPrev" },
-    },
-    init = function()
-      vim.g.mwIgnoreCase = 0
-    end,
-    dependencies = {
-      "inkarkat/vim-ingo-library",
-    },
   },
 
   {
@@ -460,17 +460,17 @@ return {
     config = true,
   },
 
-  {
-    "folke/persistence.nvim",
-    opts = {  -- needs pr 24
-      pre_save = function()
-        vim.cmd([[ScopeSaveState]])
-      end,
-      post_load = function()
-        vim.cmd([[ScopeLoadState]])
-      end,
-    }
-  },
+  -- {
+  --   "folke/persistence.nvim",
+  --   opts = {  -- needs pr 24
+  --     PersistenceSavePre = function()
+  --       vim.cmd([[ScopeSaveState]])
+  --     end,
+  --     PersistenceLoadPost = function()
+  --       vim.cmd([[ScopeLoadState]])
+  --     end,
+  --   }
+  -- },
 
   {
     "t-troebst/perfanno.nvim",
