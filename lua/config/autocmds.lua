@@ -46,3 +46,21 @@ vim.api.nvim_create_autocmd("User", {
   -- HACK: need to enable `nested` otherwise the current buffer will not have a filetype(no syntax)
   nested = true,
 })
+
+-- scope setting
+vim.api.nvim_create_autocmd('User', {
+  group = vim.api.nvim_create_augroup('UserPersistence', { clear = false }),
+  pattern = 'PersistenceSavePre',
+  callback = function()
+    print("savePre")
+    vim.cmd([[ScopeSaveState]])
+  end,
+})
+
+vim.api.nvim_create_autocmd('User', {
+  group = vim.api.nvim_create_augroup('UserPersistence', { clear = false }),
+  pattern = 'PersistenceLoadPost',
+  callback = function()
+    vim.cmd([[ScopeLoadState]])
+  end,
+})
