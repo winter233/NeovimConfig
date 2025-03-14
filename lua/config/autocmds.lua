@@ -16,3 +16,16 @@ vim.api.nvim_create_autocmd('ColorScheme', {
     io.stdout:write(("\027]11;#%06x\027\\"):format(bg))
   end
 })
+
+-- it seems neovim has bug in detect llvm filetype
+-- set llvm filetype detection
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "lifelines" },
+	group = vim.api.nvim_create_augroup('check_filetype', { clear = true }),
+  callback = function(opts)
+    local first_line = vim.filetype._getline(opts.buf, 1)
+    if vim.filetype._matchregex(first_line, [[;\|\<source_filename\>\|\<target\>]]) then
+      vim.bo.filetype = 'llvm'
+    end
+  end,
+})
