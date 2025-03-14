@@ -29,3 +29,20 @@ vim.api.nvim_create_autocmd("FileType", {
     end
   end,
 })
+
+-- auto restore session
+vim.api.nvim_create_autocmd("User", {
+  -- group = vim.api.nvim_create_augroup("UserPersistence", { clear = true }),
+  -- HACK: VeryLazy event is executed after VimEnter
+  pattern = "LazyVimKeymaps",
+  callback = function()
+    -- NOTE: Before restoring the session, check:
+    -- 1. No arg passed when opening nvim, means no `nvim --some-arg ./some-path`
+    -- 2. No pipe, e.g. `echo "Hello world" | nvim`
+    if vim.fn.argc() == 0 and not vim.g.started_with_stdin then
+      require("persistence").load()
+    end
+  end,
+  -- HACK: need to enable `nested` otherwise the current buffer will not have a filetype(no syntax)
+  nested = true,
+})
