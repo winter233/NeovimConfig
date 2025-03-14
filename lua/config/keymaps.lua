@@ -3,22 +3,12 @@
 -- Add any additional keymaps here
 local Util = require("config.util")
 
-local function map(mode, lhs, rhs, opts)
-  local keys = require("lazy.core.handler").handlers.keys
-  ---@cast keys LazyKeysHandler
-  -- do not create the keymap if a lazy keys handler exists
-  if not keys.active[keys.parse({ lhs, mode = mode }).id] then
-    opts = opts or {}
-    opts.silent = opts.silent ~= false
-    if opts.remap and not vim.g.vscode then
-      opts.remap = nil
-    end
-    vim.keymap.set(mode, lhs, rhs, opts)
-  end
-end
+local map = LazyVim.safe_keymap_set
 
 map("n", "<C-D>", "<cmd>q<cr>", { desc = "Quit" })
 map("n", "<leader>qt", "<cmd>tabclose<cr>", { desc = "Quit current tab" })
+
+map("n", "<A-d>", function() Snacks.bufdelete() end, { desc = "Delete Buffer" })
 
 -- TODO: A-j
 -- map("n", "<A-j>", "<cmd>m .+1<cr>==", { desc = "Move down" })
@@ -27,10 +17,11 @@ map("i", "<C-h>", "<Left>", { desc = "Cusor move left" })
 map("i", "<C-l>", "<Right>", { desc = "Cusor move right" })
 map("i", "<C-j>", "<Down>", { desc = "Cusor move down" })
 map("i", "<C-k>", "<Up>", { desc = "Cursor move up" })
-map("i", "<A-b>", "<esc>bi", { desc = "Move back one word" })
+map("i", "<A-b>", "<C-o>b", { desc = "Move back one word" })
+map("i", "<A-w>", "<C-o>w", { desc = "Move forward one word" })
 
-map("n", "<leader>a", "^")
-map("n", "<leader>z", "$")
+map("n", "<C-Q>", "^")
+map("n", "<C-E>", "$")
 
 -- copy/paste
 -- map({"n", "v"}, "<leader>y", '"+y', { desc = "copy to system clipboard" })
