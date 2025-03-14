@@ -8,3 +8,5 @@ local opt = vim.opt
 
 opt.foldenable = false
 opt.sessionoptions = { "buffers", "curdir", "tabpages", "winsize", "globals" }
+
+vim.g.lazyvim_picker = "snacks"
