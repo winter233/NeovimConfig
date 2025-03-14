@@ -1,20 +1,24 @@
-local Util = require("config.util")
-
 return {
   {
     "kkharji/sqlite.lua",
     lazy = true,
   },
-  -- colorscheme: gruvbox
+
   {
     "luisiacc/gruvbox-baby",
     lazy = true,
   },
 
+  {
+    "sainnhe/gruvbox-material",
+  },
+
+  {
+    "Tsuzat/NeoSolarized.nvim",
+  },
   -- Configure LazyVim to load gruvbox
   {
     "LazyVim/LazyVim",
-    version = "13.6.x",
     opts = {
       colorscheme = "gruvbox-baby",
     },
@@ -102,50 +106,108 @@ return {
   },
 
   {
-    "nvim-telescope/telescope.nvim",
-    keys = {
-      { "<C-P>", LazyVim.pick("find_files", { find_command = { "fd", "-E", "*test*" }, cwd = Util.root() }), desc = "Find Files no tests" },
-      { "<C-N>", LazyVim.pick("live_grep"), desc = "Find in Files (Grep)" },
-      { "<A-o>", "<cmd>Telescope resume<cr>", desc = "Resume" },
-    },
+    "folke/snacks.nvim",
     opts = {
-      defaults = {
-        mappings = {
-          i = {
-            ["<C-N>"] = require("telescope.actions").cycle_history_next,
-            ["<C-P>"] = require("telescope.actions").cycle_history_prev,
-            ["<C-J>"] = require("telescope.actions").move_selection_next,
-            ["<C-K>"] = require("telescope.actions").move_selection_previous,
-            ["<A-s>"] = require("telescope.actions").delete_buffer,
-            ["`"] = require("telescope.actions").select_tab,
+      dashboard = {
+        enabled = false,
+      },
+      picker = {
+        layout = {
+          cycle = true,
+          preset = function()
+            return vim.o.columns >= 120 and "dropdown" or "vertical"
+          end,
+        },
+        win = {
+          -- input window
+          input = {
+            keys = {
+              ["<C-u>"] = "",
+              ["<C-n>"] = { "history_forward", mode = { "i", "n" } },
+              ["<C-p>"] = { "history_back", mode = { "i", "n" } },
+              ["<C-h>"] = { "preview_scroll_left", mode = { "i", "n" } },
+              ["<C-l>"] = { "preview_scroll_right", mode = { "i", "n" } },
+              ["<C-/>"] = { "toggle_help_input", mode = { "i", "n" } },
+              ["<A-y>"] = { "filter_type", mode = { "i", "n" } },
+              ["<A-c>"] = { "filter_cur_file", mode = { "i", "n" } },
+              ["<A-p>"] = { "filter_path", mode = { "i", "n" } },
+              ["<A-b>"] = { "filter_whole_word", mode = { "i", "n" } },
+              ["<A-d>"] = { "bufdelete", mode = { "i", "n" } },
+            },
           },
+        },
+        actions = {
+          ---@param picker snacks.Picker
+          filter_type = function(picker)
+            local sel = picker:current()
+            if not sel then
+              return
+            end
+            local ext = sel.file:match("^.+%.(.+)$")
+            if not ext then
+              return
+            end
+            picker.opts["exclude"] = picker.opts["exclude"] or {}
+            table.insert(picker.opts["exclude"], "*." .. ext)
+            picker.init_opts = picker.opts
+            picker.list:set_target()
+            picker:find()
+          end,
+          ---@param picker snacks.Picker
+          filter_cur_file = function(picker)
+            local sel = picker:current()
+            if not sel then
+              return
+            end
+            picker.opts["exclude"] = picker.opts["exclude"] or {}
+            table.insert(picker.opts["exclude"], sel.file)
+            picker.init_opts = picker.opts
+            picker.list:set_target()
+            picker:find()
+          end,
+          ---@param picker snacks.Picker
+          filter_path = function(picker)
+            vim.ui.input(
+              { prompt = "Enter dir to exclude: " },
+              function(input)
+                picker.opts["exclude"] = picker.opts["exclude"] or {}
+                table.insert(picker.opts["exclude"], input)
+                picker.init_opts = picker.opts
+                picker.list:set_target()
+                picker:find()
+              end)
+          end,
+          ---@param picker snacks.Picker
+          filter_whole_word = function(picker)
+            picker.opts["args"] = picker.opts["args"] or {}
+            table.insert(picker.opts["args"], "-w")
+            picker.init_opts = picker.opts
+            picker.list:set_target()
+            picker:find()
+          end,
         },
       },
     },
-  },
-
-  {
-    "nvim-telescope/telescope-live-grep-args.nvim",
-    config = function()
-      require("telescope").load_extension("live_grep_args")
-    end,
     keys = {
-      { "<C-G>",
-        function()
-          require("telescope-live-grep-args.shortcuts").grep_word_under_cursor({ postfix = " -w -F -g !{**test**}" })
-        end,
-        desc = "Find word under cusor no tests"
-      },
-    },
+      { "<A-o>", function() Snacks.picker.resume() end, desc = "Resume" },
+      { "<C-G>", LazyVim.pick("grep_word", { args = {"-w"} }), desc = "Grep whole word (Root Dir)" },
+      { "<C-P>", LazyVim.pick("files"), desc = "Find Files (Root Dir)" },
+    }
   },
 
   {
     "folke/which-key.nvim",
     event = "VeryLazy",
     opts = {
+      preset = "classic",
+      win = {
+        -- allow the popup to overlap with the cursor
+        no_overlap = false,
+      },
       spec = {
         {
           {"<leader>h", group = "hunk", icon = { cat = "filetype", name = "diff"}, },
+          {"<leader>m", group = "highlights", icon = { icon = "󰸱", color = "cyan"}, },
         },
       },
     },
@@ -194,161 +256,15 @@ return {
     },
   },
 
-  -- buffer remove
   {
-    "echasnovski/mini.bufremove",
-    -- stylua: ignore
-    keys = {
-      { "<A-s>", function() require("mini.bufremove").delete(0, false) end, desc = "Delete Buffer", remap = false },
+    "saghen/blink.cmp",
+    opts = {
+      keymap = {
+        preset = "enter",
+        ["<Tab>"] = { "select_next", "snippet_forward", "fallback" },
+        ["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
+      },
     },
-  },
-
-  {
-    "LinArcX/telescope-env.nvim",
-    -- stylua: ignore
-    keys = {
-      { "<leader>se", function() require("telescope").extensions.env.env() end, desc = "Search environment variables", },
-    },
-    config = function()
-      require("telescope").load_extension("env")
-    end,
-  },
-
-  {
-    "hrsh7th/nvim-cmp",
-    dependencies = {
-      "hrsh7th/cmp-cmdline",
-    },
-    config = function()
-      vim.api.nvim_set_hl(0, "CmpGhostText", { link = "Comment", default = true })
-      local has_words_before = function()
-        unpack = unpack or table.unpack
-        local line, col = unpack(vim.api.nvim_win_get_cursor(0))
-        return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
-      end
-
-      local luasnip = require("luasnip")
-      local cmp = require("cmp")
-      local defaults = require("cmp.config.default")()
-
-      cmp.setup({
-        completion = {
-          completeopt = "menu,menuone,noselect,noinsert",
-        },
-        snippet = {
-          expand = function(args)
-            require("luasnip").lsp_expand(args.body)
-          end,
-        },
-        mapping = {
-          ["<C-b>"] = cmp.mapping.scroll_docs(-4),
-          ["<C-f>"] = cmp.mapping.scroll_docs(4),
-          ["<C-Space>"] = cmp.mapping.complete(),
-          ["<C-e>"] = cmp.mapping.abort(),
-          ["<CR>"] = cmp.mapping.confirm({ select = true }),
-          ["<Tab>"] = cmp.mapping(function(fallback)
-            if cmp.visible() then
-              cmp.select_next_item()
-            elseif luasnip.expand_or_jumpable() then
-              luasnip.expand_or_jump()
-            elseif has_words_before() then
-              cmp.complete()
-            else
-              fallback()
-            end
-          end, { "i", "s" }),
-          ["<S-Tab>"] = cmp.mapping(function(fallback)
-            if cmp.visible() then
-              cmp.select_prev_item()
-            elseif luasnip.jumpable(-1) then
-              luasnip.jump(-1)
-            else
-              fallback()
-            end
-          end, { "i", "s" }),
-        },
-        sources = cmp.config.sources({
-          { name = "nvim_lsp" },
-          { name = "luasnip" },
-          { name = "buffer" },
-          { name = "path" },
-        }),
-        formatting = {
-          format = function(_, item)
-            local icons = require("lazyvim.config").icons.kinds
-            if icons[item.kind] then
-              item.kind = icons[item.kind] .. item.kind
-            end
-            return item
-          end,
-        },
-        experimental = {
-          ghost_text = {
-            hl_group = "CmpGhostText",
-          },
-        },
-        sorting = defaults.sorting,
-      })
-
-      -- Set configuration for specific filetype.
-      cmp.setup.filetype("gitcommit", {
-        sources = cmp.config.sources({
-          { name = "cmp_git" }, -- You can specify the `cmp_git` source if you were installed it.
-        }, {
-          { name = "buffer" },
-        }),
-      })
-
-      local feedkeys = require("cmp.utils.feedkeys")
-      local keymap = require("cmp.utils.keymap")
-      local cmd_mapping = {
-        ["<Tab>"] = {
-          c = function()
-            if cmp.visible() then
-              cmp.select_next_item()
-            else
-              feedkeys.call(keymap.t("<C-z>"), "n")
-            end
-          end,
-        },
-        ["<S-Tab>"] = {
-          c = function()
-            if cmp.visible() then
-              cmp.select_prev_item()
-            else
-              feedkeys.call(keymap.t("<C-z>"), "n")
-            end
-          end,
-        },
-        ["<C-e>"] = {
-          c = cmp.mapping.close(),
-        },
-      }
-      -- Use buffer source for `/` (if you enabled `native_menu`, this won't work anymore).
-      cmp.setup.cmdline("/", {
-        mapping = cmd_mapping,
-        sources = {
-          { name = "buffer" },
-        },
-      })
-
-      -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
-      cmp.setup.cmdline(":", {
-        mapping = cmd_mapping,
-        sources = cmp.config.sources({
-          { name = "path" },
-        }, {
-          { name = "cmdline" },
-        }),
-      })
-    end,
-  },
-
-  {
-    "ray-x/lsp_signature.nvim",
-    opts = {},
-    event = "VeryLazy",
-    config = function(_, opts) require'lsp_signature'.setup(opts) end,
   },
 
   {
@@ -423,85 +339,9 @@ return {
   },
 
   {
-    "gbprod/yanky.nvim",
-    opts = function()
-      local mapping = require("yanky.telescope.mapping")
-      local mappings = mapping.get_defaults()
-      mappings.i["<c-p>"] = nil
-      -- mappings.i["<c-j>"] = require("telescope.actions").move_selection_next
-      -- mappings.i["<c-k>"] = require("telescope.actions").move_selection_previous
-      -- mappings.i["<c-h]"] = require("yanky.telescope.mapping").put("P")
-      -- mappings.i["<c-s]"] = require("yanky.telescope.mapping").delete
-      return {
-        highlight = { timer = 200 },
-        ring = { storage = jit.os:find("Windows") and "shada" or "sqlite" },
-        picker = {
-          telescope = {
-            use_default_mappings = false,
-            mappings = {
-              default = mapping.put("p"),
-              i = {
-                ["<c-p>"] = nil,
-                ["<c-j>"] = require("telescope.actions").move_selection_next,
-                ["<c-k>"] = require("telescope.actions").move_selection_previous,
-                ["<c-h]"] = require("yanky.telescope.mapping").put("P"),
-                ["<c-s>"] = require("yanky.telescope.mapping").delete(),
-              },
-            },
-          },
-        },
-      }
-    end,
-  },
-
-  {
     "tiagovla/scope.nvim",
     lazy = false,
     config = true,
-  },
-
-  -- {
-  --   "folke/persistence.nvim",
-  --   opts = {  -- needs pr 24
-  --     PersistenceSavePre = function()
-  --       vim.cmd([[ScopeSaveState]])
-  --     end,
-  --     PersistenceLoadPost = function()
-  --       vim.cmd([[ScopeLoadState]])
-  --     end,
-  --   }
-  -- },
-
-  {
-    "t-troebst/perfanno.nvim",
-    config = true,
-  },
-
-  {
-    "JoosepAlviste/nvim-ts-context-commentstring",
-    enabled = false,
-  },
-
-  {
-    "echasnovski/mini.comment",
-    enabled = false,
-  },
-
-  {
-    "b3nj5m1n/kommentary",
-    lazy = true,
-    keys = {
-      { "<C-_>", "<Plug>kommentary_line_default", desc = "toggle commit" },
-      { "<C-_>", "<Plug>kommentary_visual_default<C-c>", mode = "v", desc = "toggle commit" },
-      { "gcc", "<Plug>kommentary_line_default", desc = "toggle commit" },
-      { "gcc", "<Plug>kommentary_visual_default<C-c>", mode = "v", desc = "toggle commit" },
-    },
-    config = function()
-      require("kommentary.config").configure_language("default", {
-        prefer_single_line_comments = true,
-      })
-      vim.g.kommentary_create_default_mappings = false
-    end,
   },
 
   {
@@ -510,5 +350,30 @@ return {
     keys = {
       { "<leader>xf", "<cmd>execute 'TodoTrouble cwd='.expand('%:p')<cr>", desc = "Todo in current file" },
     },
+  },
+
+  {
+    "winter233/neomark.nvim",
+    config = true,
+    keys = {
+      { "<F7>",  "<leader>mn" , remap = true, mode = {"n", "v"} },
+      { "<F19>", "<leader>mp", remap = true, mode = {"n", "v"} },
+      { "<F8>",  "<leader>m]" , remap = true, mode = {"n", "v"} },
+      { "<F20>", "<leader>m[", remap = true, mode = {"n", "v"} },
+      { "<leader>mm", function() require("neomark").toggle() end, desc = "Mark/Unmark word under cursor"},
+      { "<leader>mc", function() require("neomark").clear() end, desc = "Unmark all words"},
+      { "<leader>mp", function() require("neomark").prev({ recursive = true }) end, desc = "prev marked word", mode = {"n", "v"} },
+      { "<leader>mn", function() require("neomark").next({ recursive = true }) end, desc = "next marked word", mode = {"n", "v"} },
+      { "<leader>m[", function() require("neomark").prev({ recursive = true, any = true }) end, desc = "prev any marked word", mode = {"n", "v"} },
+      { "<leader>m]", function() require("neomark").next({ recursive = true, any = true }) end, desc = "next any marked word", mode = {"n", "v"} },
+    },
+  },
+
+  {
+    "alanfortlink/animatedbg.nvim",
+    config = true,
+    keys = {
+      { "<leader>ux", function() require('animatedbg-nvim').play({ animation = "matrix" }) end, desc = "Matrix animation" },
+    }
   },
 }
