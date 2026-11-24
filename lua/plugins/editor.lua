@@ -63,6 +63,7 @@ return {
         "llvm",
         "bash",
       },
+      auto_install = false,
       incremental_selection = {
         enable = true,
         keymaps = {
@@ -76,32 +77,19 @@ return {
   },
 
   {
-    "nvim-neo-tree/neo-tree.nvim",
-    opts = {
-      window = {
-        mappings = {
-          ["<space>"] = "none",
-          ["<C-v>"] = "vsplit_and_quit_tree",
-          ["O"] = "system_open",
-          ["<C-o>"] = "open_and_quit_tree",
-        },
-      },
-      commands = {
-        vsplit_and_quit_tree = function(state)
-          -- local node = state.tree:get_node()
-          require("neo-tree.sources.filesystem.commands").open_vsplit(state)
-          require("neo-tree.command").execute({ action = "close" })
-        end,
-        open_and_quit_tree = function(state)
-          require("neo-tree.sources.filesystem.commands").open(state)
-          require("neo-tree.command").execute({ action = "close" })
-        end,
-        system_open = function(state)
-          local node = state.tree:get_node()
-          local path = node:get_id()
-          vim.api.nvim_command(string.format("silent !xdg-open '%s'", path))
-        end,
-      },
+    "folke/flash.nvim",
+    keys = {
+      { "<c-space>", mode = { "n", "o", "x" }, false },
+      -- Simulate nvim-treesitter incremental selection
+      { "<c-enter>", mode = { "n", "o", "x" },
+        function()
+          require("flash").treesitter({
+            actions = {
+              ["<c-space>"] = "next",
+              ["<BS>"] = "prev"
+            }
+          })
+        end, desc = "Treesitter Incremental Selection" },
     },
   },
 
@@ -128,6 +116,7 @@ return {
               ["<C-h>"] = { "preview_scroll_left", mode = { "i", "n" } },
               ["<C-l>"] = { "preview_scroll_right", mode = { "i", "n" } },
               ["<C-/>"] = { "toggle_help_input", mode = { "i", "n" } },
+              ["<C-_>"] = { "toggle_help_input", mode = { "i", "n" } },
               ["<A-y>"] = { "filter_type", mode = { "i", "n" } },
               ["<A-c>"] = { "filter_cur_file", mode = { "i", "n" } },
               ["<A-p>"] = { "filter_path", mode = { "i", "n" } },

@@ -52,9 +52,18 @@ map("n", "<C-Space>", function() lazyterm(last_term) end, { desc = "Terminal las
 map("t", "<C-Space>", "<cmd>close<cr>", { desc = "Hide Terminal" })
 map("t", "<ESC>", "<C-\\><C-n>")
 map("t", "<C-B>", "<C-\\><C-n><C-B>")
-map("t", "<C-v>", '<C-\\><C-N>:lua require("config.util").paste_multi_lines()<cr>"+pa<cr>', { desc = "paste as commands" })
-map("i", "<C-v>", '<C-C>:lua require("config.util").split_to_args()<cr>"+pa<cr>', { desc = "Paste as args" })
+-- map("t", "<C-v>", '<C-\\><C-N>:lua require("config.util").paste_multi_lines()<cr>"+pa<cr>', { desc = "paste as commands" })
+-- map("i", "<C-v>", '<C-C>:lua require("config.util").split_to_args()<cr>"+pa<cr>', { desc = "Paste as args" })
+map({'i', 't'}, '<C-v>', function()
+    local clipboard = vim.fn.getreg('+')
+    if clipboard == '' then
+        return
+    end
 
+    local cleaned = clipboard:gsub('[\r\n]+', '')
+
+    vim.api.nvim_put({cleaned}, 'c', true, true)
+end, { noremap = true, silent = true, desc = 'Paste without newlines' })
 
 -- diff
 map("n", "<leader>df", "<cmd>windo diffthis<cr>", { desc = "window diff"})

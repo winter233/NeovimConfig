@@ -61,6 +61,6 @@ vim.api.nvim_create_autocmd('User', {
   group = vim.api.nvim_create_augroup('UserPersistence', { clear = false }),
   pattern = 'PersistenceLoadPost',
   callback = function()
-    vim.cmd([[ScopeLoadState]])
+    -- vim.cmd([[ScopeLoadState]])
   end,
 })
